@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Anyone can read notifications, whatsNew, media, and settings
+    match /{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
