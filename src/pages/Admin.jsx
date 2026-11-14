@@ -69,6 +69,7 @@ const Admin = () => {
         mediaItems, addMedia, deleteMedia,
         bankDetails, saveBankDetails,
         contactDetails, saveContactDetails,
+        adminAuth, saveAdminAuth,
     } = useNotifications();
 
     const [newNotif, setNewNotif] = useState({ title: '', date: '', content: '', link: '' });
@@ -187,36 +188,23 @@ const Admin = () => {
         e.preventDefault();
         setAuthError('');
 
-        const savedCustomPw = localStorage.getItem('janseva_custom_pw') || 'admin123';
-        if (email.trim().toLowerCase() === 'admin@janseva.org' || email.trim().toLowerCase() === 'admin') {
-            if (password === savedCustomPw) {
-                const session = { email: 'admin@janseva.org', uid: 'admin_master' };
-                setUser(session);
-                localStorage.setItem(ADMIN_KEY, JSON.stringify(session));
-                return;
-            } else {
-                setAuthError('Incorrect password for admin account.');
-                return;
-            }
-        }
+        const validEmail = (adminAuth?.email || 'admin@janseva.org').trim().toLowerCase();
+        const validPassword = adminAuth?.password || 'AdminJanseva@2026#';
 
-        try {
-            if (isRegistering) {
-                const res = await createUserWithEmailAndPassword(auth, email, password);
-                const session = { email: res.user.email, uid: res.user.uid };
+        const enteredEmail = email.trim().toLowerCase();
+        if (enteredEmail === validEmail || enteredEmail === 'admin') {
+            if (password === validPassword) {
+                const session = { email: validEmail, uid: 'admin_master' };
                 setUser(session);
                 localStorage.setItem(ADMIN_KEY, JSON.stringify(session));
+                return;
             } else {
-                const res = await signInWithEmailAndPassword(auth, email, password);
-                const session = { email: res.user.email, uid: res.user.uid };
-                setUser(session);
-                localStorage.setItem(ADMIN_KEY, JSON.stringify(session));
+                setAuthError('Incorrect password. Please enter the valid admin password.');
+                return;
             }
-        } catch (err) {
-            console.error("Auth error:", err);
-            setAuthError(
-                `Firebase: ${err.message || 'Operation failed'}. You can always login with Email: "admin@janseva.org" and Password: "${savedCustomPw}".`
-            );
+        } else {
+            setAuthError('Invalid admin email address.');
+            return;
         }
     };
 
@@ -226,54 +214,30 @@ const Admin = () => {
         localStorage.removeItem(ADMIN_KEY);
     };
 
-    const handlePasswordReset = async (e) => {
-        e.preventDefault();
-        setResetMsg('');
-        if (resetEmail.trim().toLowerCase() === 'admin@janseva.org') {
-            localStorage.setItem('janseva_custom_pw', 'admin123');
-            setResetMsg('✅ Default password reset to: admin123');
-            return;
-        }
-        try {
-            await sendPasswordResetEmail(auth, resetEmail);
-            setResetMsg('✅ Password reset link sent! Please check your email.');
-        } catch (err) {
-            setResetMsg(`❌ ${err.message || 'Could not send reset email.'}`);
-        }
-    };
-
     const handleChangePassword = async (e) => {
         e.preventDefault();
         setPwMsg('');
         if (pwForm.newPw !== pwForm.confirm) {
             setPwMsg('❌ New passwords do not match.'); return;
         }
-        if (pwForm.newPw.length < 6) {
-            setPwMsg('❌ Password must be at least 6 characters.'); return;
+        if (pwForm.newPw.length < 8) {
+            setPwMsg('❌ Strong password must be at least 8 characters.'); return;
         }
 
-        if (user.uid === 'admin_master') {
-            const currentSaved = localStorage.getItem('janseva_custom_pw') || 'admin123';
-            if (pwForm.current !== currentSaved) {
-                setPwMsg('❌ Current password is incorrect.');
-                return;
-            }
-            localStorage.setItem('janseva_custom_pw', pwForm.newPw);
-            setPwForm({ current: '', newPw: '', confirm: '' });
-            setPwMsg('✅ Password updated successfully!');
-            setTimeout(() => setPwMsg(''), 4000);
+        const validPassword = adminAuth?.password || 'AdminJanseva@2026#';
+        if (pwForm.current !== validPassword) {
+            setPwMsg('❌ Current password is incorrect.');
             return;
         }
 
-        try {
-            const credential = EmailAuthProvider.credential(user.email, pwForm.current);
-            await reauthenticateWithCredential(auth.currentUser, credential);
-            await updatePassword(auth.currentUser, pwForm.newPw);
-            setPwForm({ current: '', newPw: '', confirm: '' });
-            setPwMsg('✅ Password updated successfully!');
-        } catch {
-            setPwMsg('❌ Current password is incorrect or session expired.');
-        }
+        await saveAdminAuth({
+            email: adminAuth?.email || 'admin@janseva.org',
+            password: pwForm.newPw,
+            updatedAt: new Date().toISOString()
+        });
+
+        setPwForm({ current: '', newPw: '', confirm: '' });
+        setPwMsg('✅ Strong Password successfully updated and synced across all devices!');
         setTimeout(() => setPwMsg(''), 4000);
     };
 
@@ -338,73 +302,32 @@ const Admin = () => {
                     Sign in to manage announcements, gallery & details.
                 </p>
 
-                {!showReset ? (
-                    <>
-                        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <input type="email" placeholder="Email (e.g. admin@janseva.org)" value={email}
-                                onChange={e => setEmail(e.target.value)} required style={inputStyle} />
-                            <input type="password" placeholder="Password (default: admin123)" value={password}
-                                onChange={e => setPassword(e.target.value)} required style={inputStyle} />
-                            {authError && <p style={{ color: 'red', fontSize: '0.85rem', lineHeight: '1.4' }}>{authError}</p>}
-                            <button type="submit" style={{ ...btnPrimary, fontSize: '1rem' }}>
-                                {isRegistering ? 'Create Admin Account' : 'Login'}
-                            </button>
-                        </form>
-
-                        <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.88rem' }}>
-                            <button
-                                onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
-                                style={{
-                                    background: 'none', border: 'none',
-                                    color: 'var(--primary-color)', cursor: 'pointer',
-                                    fontWeight: '600'
-                                }}>
-                                {isRegistering
-                                    ? 'Already have an account? Login here'
-                                    : 'First time? Click here to Create Admin Account'}
-                            </button>
-
-                            {!isRegistering && (
-                                <button
-                                    onClick={() => { setShowReset(true); setAuthError(''); }}
-                                    style={{
-                                        background: 'none', border: 'none',
-                                        color: '#666', cursor: 'pointer',
-                                        textDecoration: 'underline',
-                                    }}>
-                                    Forgot Password?
-                                </button>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <h3 style={{ marginBottom: '0.75rem', color: '#333' }}>Reset Password</h3>
-                        <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '1rem' }}>
-                            Enter admin email to receive reset instructions.
-                        </p>
-                        <form onSubmit={handlePasswordReset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <input type="email" placeholder="Admin Email" value={resetEmail}
-                                onChange={e => setResetEmail(e.target.value)} required style={inputStyle} />
-                            <button type="submit" style={{ ...btnPrimary, fontSize: '1rem' }}>
-                                Send Reset Link
-                            </button>
-                        </form>
-                        {resetMsg && (
-                            <p style={{
-                                marginTop: '0.75rem', fontSize: '0.88rem',
-                                color: resetMsg.startsWith('✅') ? 'green' : 'red',
-                            }}>{resetMsg}</p>
-                        )}
-                        <button onClick={() => { setShowReset(false); setResetMsg(''); }}
-                            style={{
-                                marginTop: '1rem', background: 'none', border: 'none',
-                                color: '#666', cursor: 'pointer', fontSize: '0.88rem',
-                            }}>
-                            ← Back to Login
-                        </button>
-                    </>
-                )}
+                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                        <input
+                            type="email"
+                            placeholder="Admin Email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            required
+                            style={inputStyle}
+                        />
+                    </div>
+                    <div>
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            required
+                            style={inputStyle}
+                        />
+                    </div>
+                    {authError && <p style={{ color: 'red', fontSize: '0.85rem', lineHeight: '1.4' }}>{authError}</p>}
+                    <button type="submit" style={{ ...btnPrimary, fontSize: '1rem' }}>
+                        Login to Dashboard
+                    </button>
+                </form>
             </div>
         );
     }

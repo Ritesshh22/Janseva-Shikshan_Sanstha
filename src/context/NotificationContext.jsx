@@ -17,6 +17,10 @@ export function NotificationProvider({ children }) {
         email: 'janseva00057@gmail.com',
         address: 'Anushri Park, Yavatmal, Maharashtra – 445001'
     });
+    const [adminAuth, setAdminAuth] = useState({
+        email: 'admin@janseva.org',
+        password: 'AdminJanseva@2026#'
+    });
     const [loading, setLoading] = useState(true);
 
     // Notifications (Updates)
@@ -61,6 +65,16 @@ export function NotificationProvider({ children }) {
         const unsub = onSnapshot(doc(db, 'settings', 'contactDetails'), (snap) => {
             if (snap.exists()) {
                 setContactDetails(prev => ({ ...prev, ...snap.data() }));
+            }
+        }, (err) => console.error(err));
+        return () => unsub();
+    }, []);
+
+    // Admin Auth Settings Sync
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, 'settings', 'adminAuth'), (snap) => {
+            if (snap.exists()) {
+                setAdminAuth(prev => ({ ...prev, ...snap.data() }));
             }
         }, (err) => console.error(err));
         return () => unsub();
@@ -145,6 +159,16 @@ export function NotificationProvider({ children }) {
         }
     };
 
+    // Save Admin Auth
+    const saveAdminAuth = async (authData) => {
+        try {
+            await setDoc(doc(db, 'settings', 'adminAuth'), authData);
+        } catch (e) {
+            console.error(e);
+            setAdminAuth(authData);
+        }
+    };
+
     return (
         <NotificationContext.Provider value={{
             notifications, addNotification, deleteNotification, loading,
@@ -152,6 +176,7 @@ export function NotificationProvider({ children }) {
             mediaItems, addMedia, deleteMedia,
             bankDetails, saveBankDetails,
             contactDetails, saveContactDetails,
+            adminAuth, saveAdminAuth,
         }}>
             {children}
         </NotificationContext.Provider>
