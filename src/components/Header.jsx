@@ -10,15 +10,18 @@ const LOGO_URL = '/logo.jpg';
 const Header = () => {
     const { notifications } = useNotifications();
     const [menuOpen, setMenuOpen] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 820);
+    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [showDonate, setShowDonate] = useState(false);
     const [showUpdates, setShowUpdates] = useState(false);
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 820);
+        const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    const isMobile = screenWidth < 768;
+    const isTablet = screenWidth >= 768 && screenWidth < 1024;
 
     const handleContactClick = (e) => {
         e.preventDefault();
@@ -39,7 +42,7 @@ const Header = () => {
         <>
             <header style={{
                 backgroundColor: '#fff',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
                 position: 'sticky',
                 top: 0,
                 zIndex: 1000,
@@ -49,49 +52,52 @@ const Header = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: isMobile ? '0.75rem 1rem' : '0.85rem 2.5rem',
-                    borderBottom: '1px solid #eef2f6',
-                    maxWidth: '1400px',
+                    padding: isMobile ? '0.6rem 0.85rem' : '0.75rem 2rem',
+                    borderBottom: '1px solid #edf2f7',
+                    maxWidth: '1440px',
                     margin: '0 auto',
-                    gap: '1rem',
+                    gap: '0.75rem',
                 }}>
-                    {/* Left: Logo + Sanstha Name + Reg No Side-by-Side */}
+                    {/* Left: Logo + Name + Reg No */}
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: isMobile ? '0.75rem' : '1.25rem',
+                        gap: isMobile ? '0.6rem' : '1rem',
                         flex: 1,
+                        minWidth: 0,
                     }}>
                         <img
                             src={LOGO_URL}
                             alt="Janseva Shikshan Sanstha Logo"
                             onError={(e) => { e.target.style.display = 'none'; }}
                             style={{
-                                height: isMobile ? '56px' : '78px',
-                                width: isMobile ? '56px' : '78px',
+                                height: isMobile ? '50px' : (isTablet ? '64px' : '74px'),
+                                width: isMobile ? '50px' : (isTablet ? '64px' : '74px'),
                                 objectFit: 'contain',
                                 borderRadius: '50%',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
                                 flexShrink: 0,
                             }}
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ minWidth: 0, overflow: 'hidden' }}>
                             <Link to="/" style={{
-                                fontSize: isMobile ? '1.05rem' : '1.45rem',
+                                fontSize: isMobile ? '0.92rem' : (isTablet ? '1.18rem' : '1.38rem'),
                                 fontWeight: '800',
                                 color: 'var(--primary-color)',
-                                lineHeight: '1.25',
-                                letterSpacing: '0.2px',
+                                lineHeight: '1.2',
+                                letterSpacing: '0.1px',
                                 textDecoration: 'none',
+                                display: 'block',
+                                wordBreak: 'break-word',
                             }}>
                                 JANSEVA SHIKSHAN AND SAMAJIK BAHUUDDESHIY SANSTHA
                             </Link>
                             <span style={{
-                                fontSize: isMobile ? '0.75rem' : '0.88rem',
+                                fontSize: isMobile ? '0.72rem' : '0.84rem',
                                 color: '#666',
                                 fontWeight: '600',
-                                marginTop: '0.25rem',
-                                letterSpacing: '0.3px',
+                                marginTop: '0.2rem',
+                                display: 'block',
                             }}>
                                 Reg. No: Yavatmal/0000057/2026
                             </span>
@@ -105,7 +111,7 @@ const Header = () => {
                             display: 'flex',
                             alignItems: 'center',
                             cursor: 'pointer',
-                            padding: isMobile ? '0.45rem 0.75rem' : '0.55rem 1.15rem',
+                            padding: isMobile ? '0.4rem 0.65rem' : '0.5rem 1rem',
                             borderRadius: '30px',
                             backgroundColor: 'var(--secondary-color)',
                             color: 'var(--primary-color)',
@@ -113,20 +119,12 @@ const Header = () => {
                             border: '1.5px solid #bcdbfb',
                             userSelect: 'none',
                             whiteSpace: 'nowrap',
-                            boxShadow: '0 2px 5px rgba(0,86,179,0.08)',
+                            boxShadow: '0 2px 4px rgba(0,86,179,0.06)',
                             flexShrink: 0,
                         }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#d2e8fc';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--secondary-color)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                        }}
                     >
-                        <Bell size={isMobile ? 16 : 18} style={{ marginRight: '6px' }} />
-                        <span style={{ fontWeight: '700', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>
+                        <Bell size={isMobile ? 15 : 18} style={{ marginRight: '5px' }} />
+                        <span style={{ fontWeight: '700', fontSize: isMobile ? '0.78rem' : '0.88rem' }}>
                             Updates ({notifications.length})
                         </span>
                     </div>
@@ -135,19 +133,19 @@ const Header = () => {
                 {/* Navigation Bar */}
                 <nav style={{
                     backgroundColor: 'var(--primary-color)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
                 }}>
                     <div style={{
-                        maxWidth: '1400px',
+                        maxWidth: '1440px',
                         margin: '0 auto',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: isMobile ? '0 1rem' : '0 2rem',
+                        padding: isMobile ? '0 0.85rem' : '0 2rem',
                     }}>
                         {/* Desktop links */}
                         {!isMobile && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.label}
@@ -155,9 +153,9 @@ const Header = () => {
                                         onClick={link.onClick || undefined}
                                         style={{
                                             color: '#fff',
-                                            padding: '0.8rem 1.25rem',
+                                            padding: isTablet ? '0.7rem 0.85rem' : '0.75rem 1.15rem',
                                             fontWeight: '600',
-                                            fontSize: '0.95rem',
+                                            fontSize: isTablet ? '0.88rem' : '0.95rem',
                                             display: 'block',
                                             transition: 'background 0.2s',
                                         }}
@@ -176,8 +174,8 @@ const Header = () => {
                                 onClick={() => setMenuOpen(!menuOpen)}
                                 style={{
                                     background: 'none', border: 'none',
-                                    color: '#fff', fontSize: '1.6rem',
-                                    cursor: 'pointer', padding: '0.6rem 0', lineHeight: 1,
+                                    color: '#fff', fontSize: '1.5rem',
+                                    cursor: 'pointer', padding: '0.55rem 0', lineHeight: 1,
                                 }}
                                 aria-label="Toggle menu"
                             >
@@ -191,25 +189,16 @@ const Header = () => {
                             style={{
                                 backgroundColor: 'var(--accent-color)',
                                 color: '#fff',
-                                padding: isMobile ? '0.45rem 1rem' : '0.55rem 1.4rem',
-                                borderRadius: '22px',
+                                padding: isMobile ? '0.4rem 0.85rem' : '0.5rem 1.3rem',
+                                borderRadius: '20px',
                                 fontWeight: '700',
-                                fontSize: isMobile ? '0.85rem' : '0.95rem',
+                                fontSize: isMobile ? '0.82rem' : '0.92rem',
                                 display: 'inline-block',
-                                margin: '0.4rem 0 0.4rem auto',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                                transition: 'opacity 0.2s, transform 0.2s',
+                                margin: '0.35rem 0 0.35rem auto',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.18)',
                                 whiteSpace: 'nowrap',
                                 border: 'none',
                                 cursor: 'pointer',
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.opacity = '0.9';
-                                e.currentTarget.style.transform = 'scale(1.02)';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.opacity = '1';
-                                e.currentTarget.style.transform = 'scale(1)';
                             }}
                         >
                             💛 Donate
@@ -221,7 +210,7 @@ const Header = () => {
                 {isMobile && menuOpen && (
                     <div style={{
                         backgroundColor: 'var(--primary-color)',
-                        borderTop: '1px solid rgba(255,255,255,0.15)',
+                        borderTop: '1px solid rgba(255,255,255,0.12)',
                         paddingBottom: '0.5rem',
                     }}>
                         {navLinks.map((link) => (
@@ -232,10 +221,10 @@ const Header = () => {
                                 style={{
                                     display: 'block',
                                     color: '#fff',
-                                    padding: '0.75rem 1.5rem',
+                                    padding: '0.7rem 1.25rem',
                                     fontWeight: '600',
-                                    fontSize: '1rem',
-                                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                                    fontSize: '0.95rem',
+                                    borderBottom: '1px solid rgba(255,255,255,0.06)',
                                 }}
                             >
                                 {link.label}
