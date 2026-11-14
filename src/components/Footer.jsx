@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
 import DonateModal from './DonateModal';
+import { useNotifications } from '../context/NotificationContext';
 
 const Footer = () => {
     const [showDonate, setShowDonate] = useState(false);
+    const { contactDetails } = useNotifications();
+
+    const phone = contactDetails?.phone || '9420799455';
+    const email = contactDetails?.email || 'janseva00057@gmail.com';
+    const address = contactDetails?.address || 'Anushri Park, Yavatmal, Maharashtra – 445001';
 
     return (
         <>
@@ -36,18 +42,20 @@ const Footer = () => {
                             <li style={liStyle}>
                                 <MapPin size={18} style={iconStyle} />
                                 <span style={textStyle}>
-                                    Anushri Park, Yavatmal, Maharashtra – 445001
+                                    {address}
                                 </span>
                             </li>
                             <li style={liStyle}>
                                 <Phone size={18} style={iconStyle} />
-                                <a href="tel:+918805589202" style={{ ...textStyle, textDecoration: 'none' }}>
-                                    +91 88055 89202
+                                <a href={`tel:+91${phone}`} style={{ ...textStyle, textDecoration: 'none' }}>
+                                    +91 {phone}
                                 </a>
                             </li>
                             <li style={liStyle}>
                                 <Mail size={18} style={iconStyle} />
-                                <span style={textStyle}>—</span>
+                                <a href={`mailto:${email}`} style={{ ...textStyle, textDecoration: 'none' }}>
+                                    {email}
+                                </a>
                             </li>
                         </ul>
                     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNotifications } from '../context/NotificationContext';
-import { Plus, Trash, LogOut, Image, CreditCard, KeyRound, Film } from 'lucide-react';
+import { Plus, Trash, LogOut, Image, CreditCard, KeyRound, Film, PhoneCall } from 'lucide-react';
 import { auth } from '../firebase';
 import {
     signInWithEmailAndPassword,
@@ -68,6 +68,7 @@ const Admin = () => {
         whatsNew, addWhatsNew, deleteWhatsNew,
         mediaItems, addMedia, deleteMedia,
         bankDetails, saveBankDetails,
+        contactDetails, saveContactDetails,
     } = useNotifications();
 
     const [newNotif, setNewNotif] = useState({ title: '', date: '', content: '', link: '' });
@@ -134,6 +135,14 @@ const Admin = () => {
     });
     const [bankMsg, setBankMsg] = useState('');
 
+    // Contact details form state
+    const [contactForm, setContactForm] = useState({
+        phone: '9420799455',
+        email: 'janseva00057@gmail.com',
+        address: 'Anushri Park, Yavatmal, Maharashtra – 445001'
+    });
+    const [contactMsg, setContactMsg] = useState('');
+
     // Change password state
     const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
     const [pwMsg, setPwMsg] = useState('');
@@ -162,6 +171,17 @@ const Admin = () => {
             });
         }
     }, [bankDetails]);
+
+    // Sync contact details
+    useEffect(() => {
+        if (contactDetails) {
+            setContactForm({
+                phone: contactDetails.phone || '9420799455',
+                email: contactDetails.email || 'janseva00057@gmail.com',
+                address: contactDetails.address || 'Anushri Park, Yavatmal, Maharashtra – 445001'
+            });
+        }
+    }, [contactDetails]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -292,6 +312,13 @@ const Admin = () => {
         setTimeout(() => setBankMsg(''), 3000);
     };
 
+    const handleSaveContactDetails = async (e) => {
+        e.preventDefault();
+        await saveContactDetails(contactForm);
+        setContactMsg('✅ Contact details saved successfully!');
+        setTimeout(() => setContactMsg(''), 3000);
+    };
+
     if (loading) return (
         <div style={{ textAlign: 'center', marginTop: '5rem', color: '#666' }}>Loading...</div>
     );
@@ -388,6 +415,7 @@ const Admin = () => {
         { key: 'whatsNew', label: '📸 What\'s New' },
         { key: 'media', label: '🖼️ Media & Gallery' },
         { key: 'bank', label: '🏦 Donate & Bank' },
+        { key: 'contact', label: '📞 Contact Details' },
         { key: 'security', label: '🔑 Password' },
     ];
 
@@ -827,6 +855,47 @@ const Admin = () => {
                             <CreditCard size={18} /> Save Bank Details
                         </button>
                         {bankMsg && <p style={{ color: 'green', fontSize: '0.9rem' }}>{bankMsg}</p>}
+                    </form>
+                </div>
+            )}
+
+            {/* ── TAB: Contact Details ── */}
+            {activeTab === 'contact' && (
+                <div style={sectionCard}>
+                    <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+                        <PhoneCall size={18} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                        Update Contact Details
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '1.25rem' }}>
+                        These details are displayed in the footer and contact sections across the website.
+                    </p>
+                    <form onSubmit={handleSaveContactDetails} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                        <div>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' }}>Phone Number</label>
+                            <input type="text" placeholder="e.g. 9420799455 *"
+                                value={contactForm.phone}
+                                onChange={e => setContactForm({ ...contactForm, phone: e.target.value })}
+                                required style={inputStyle} />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' }}>Email Address</label>
+                            <input type="email" placeholder="e.g. janseva00057@gmail.com *"
+                                value={contactForm.email}
+                                onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
+                                required style={inputStyle} />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' }}>Office Address</label>
+                            <textarea placeholder="Address *"
+                                value={contactForm.address}
+                                onChange={e => setContactForm({ ...contactForm, address: e.target.value })}
+                                required rows={2}
+                                style={{ ...inputStyle, resize: 'vertical' }} />
+                        </div>
+                        <button type="submit" style={btnPrimary}>
+                            <PhoneCall size={18} /> Save Contact Details
+                        </button>
+                        {contactMsg && <p style={{ color: 'green', fontSize: '0.9rem' }}>{contactMsg}</p>}
                     </form>
                 </div>
             )}

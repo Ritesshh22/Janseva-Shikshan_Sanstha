@@ -12,6 +12,11 @@ export function NotificationProvider({ children }) {
     const [whatsNew, setWhatsNew] = useState([]);
     const [mediaItems, setMediaItems] = useState([]);
     const [bankDetails, setBankDetails] = useState(null);
+    const [contactDetails, setContactDetails] = useState({
+        phone: '9420799455',
+        email: 'janseva00057@gmail.com',
+        address: 'Anushri Park, Yavatmal, Maharashtra – 445001'
+    });
     const [loading, setLoading] = useState(true);
 
     // Notifications (Updates)
@@ -51,13 +56,22 @@ export function NotificationProvider({ children }) {
         return () => unsub();
     }, []);
 
+    // Contact details
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, 'settings', 'contactDetails'), (snap) => {
+            if (snap.exists()) {
+                setContactDetails(prev => ({ ...prev, ...snap.data() }));
+            }
+        }, (err) => console.error(err));
+        return () => unsub();
+    }, []);
+
     // Notifications CRUD
     const addNotification = async (n) => {
         try {
             await addDoc(collection(db, 'notifications'), n);
         } catch (e) {
             console.error(e);
-            // Local fallback if firebase fails
             setNotifications(prev => [{ id: 'local_' + Date.now(), ...n }, ...prev]);
         }
     };
@@ -121,12 +135,23 @@ export function NotificationProvider({ children }) {
         }
     };
 
+    // Contact Details
+    const saveContactDetails = async (details) => {
+        try {
+            await setDoc(doc(db, 'settings', 'contactDetails'), details);
+        } catch (e) {
+            console.error(e);
+            setContactDetails(details);
+        }
+    };
+
     return (
         <NotificationContext.Provider value={{
             notifications, addNotification, deleteNotification, loading,
             whatsNew, addWhatsNew, deleteWhatsNew,
             mediaItems, addMedia, deleteMedia,
             bankDetails, saveBankDetails,
+            contactDetails, saveContactDetails,
         }}>
             {children}
         </NotificationContext.Provider>
